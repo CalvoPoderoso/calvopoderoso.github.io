@@ -5,14 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultsTableBody = document.querySelector('#results-table tbody');
     const calculateBtn = document.querySelector('#calculate-btn');
 
-    function formatNumber(value) {
-        if (value >= 1000000) {
-            return (value / 1000000).toFixed(1).replace('.0', '') + 'M';
-        } else if (value >= 1000) {
-            return (value / 1000).toFixed(1).replace('.0', '') + 'k';
-        }
-        return value.toString();
-    }
+    
 
     function loadTableData() {
         fetch('../json/data.json')
@@ -27,20 +20,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         Object.keys(row).forEach(key => {
                             const td = document.createElement('td');
-                            const value = row[key] !== null ? formatNumber(row[key]) : '-';
-                            td.textContent = value;
-    
-                            // Asignar clases para diferenciar Scrap y Signal Data
+                            
+                            // Asignar clases para diferenciar Scrap, Signal Data, y Credits
                             if (['Carbonite Circuit Board', 'Bronzium Wiring', 'Chromium Transistor', 'Aurodium Heatsink', 
                                  'Electrium Conductor', 'Zinbiddle Card', 'Aeromagnificator', 'Impulse Detector', 'Droid Brain']
                                 .includes(key)) {
-                                td.className = 'scrap-material'; // Clases para Scrap
+                                td.className = 'scrap-material'; // Clase para Scrap
                             } else if (['Fragmented', 'Incomplete', 'Flawed'].includes(key)) {
-                                td.className = 'signal-data'; // Clases para Signal Data
+                                td.className = 'signal-data'; // Clase para Signal Data
                             } else if (['Credits'].includes(key)) {
-                                td.className = 'credits'; // Clases para Signal Data
+                                td.className = 'credits'; // Clase para Credits
                             }
-                            
+    
+                            // Aplicar formato solo a Credits
+                            const value = row[key] !== null ? formatNumber(row[key], td) : '-';
+                            td.textContent = value;
+    
                             // Añadir clase para valores cero si es necesario
                             if (value === '0') {
                                 td.classList.add('zero-value');
@@ -56,6 +51,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 populateTable(relicLevels);
             })
             .catch(error => console.error('Error al cargar el JSON:', error));
+    }
+
+    function formatNumber(value, element) {
+        if (element && element.classList.contains('credits')) {
+            if (value >= 1000000) {
+                return (value / 1000000).toFixed(1).replace('.0', '') + 'M';
+            } else if (value >= 1000) {
+                return (value / 1000).toFixed(1).replace('.0', '') + 'k';
+            }
+        } 
+            return value;
     }
     
 
@@ -224,10 +230,8 @@ function calculateResults() {
             Object.keys(resultTotals).forEach(material => {
                 const td = document.createElement('td');
                 const total = resultTotals[material];
-                td.textContent = total > 0 ? formatNumber(total) : '';
-                td.className = total === 0 ? 'zero-value' : '';
 
-                // Añadir clase para diferenciar Scrap, Signal Data y Credits
+                // Asignar clase antes de formatear el valor
                 if (['Carbonite Circuit Board', 'Bronzium Wiring', 'Chromium Transistor', 'Aurodium Heatsink', 
                      'Electrium Conductor', 'Zinbiddle Card', 'Aeromagnificator', 'Impulse Detector', 'Droid Brain']
                     .includes(material)) {
@@ -237,13 +241,18 @@ function calculateResults() {
                 } else if (['Credits'].includes(material)) {
                     td.classList.add('credits');
                 }
-                
+
+                // Formatear usando formatNumber y pasar el elemento
+                td.textContent = total > 0 ? formatNumber(total, td) : '';
+                td.className = total === 0 ? 'zero-value' : td.className;
+
                 resultsRow.appendChild(td);
             });
             resultsTableBody.appendChild(resultsRow);
         })
         .catch(error => console.error('Error al cargar el JSON:', error));
 }
+
 
     // Cargar los datos de la tabla al cargar la página
     loadTableData();
