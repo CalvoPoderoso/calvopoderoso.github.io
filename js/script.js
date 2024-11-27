@@ -5,8 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultsTableBody = document.querySelector('#results-table tbody');
     const calculateBtn = document.querySelector('#calculate-btn');
 
-    
-
     function loadTableData() {
     fetch('../json/data.json')
         .then(response => response.json())
